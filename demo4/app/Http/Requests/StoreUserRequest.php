@@ -2,9 +2,7 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-class StoreUserRequest extends FormRequest
+class StoreUserRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {
@@ -20,6 +18,16 @@ class StoreUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['sometimes', 'string', 'min:8'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'email.unique' => 'Email sudah terdaftar.',
         ];
     }
 }

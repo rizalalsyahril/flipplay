@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
 
-class UpdateUserRequest extends FormRequest
+class UpdateUserRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {
@@ -30,6 +30,25 @@ class UpdateUserRequest extends FormRequest
                 Rule::unique('users', 'email')->ignore($user),
             ],
             'password' => ['sometimes', 'required', 'string', 'min:8'],
+        ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if (! $this->hasAny(['name', 'email', 'password'])) {
+                $validator->errors()->add('request', 'Kirim minimal satu field untuk diperbarui.');
+            }
+        });
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'email.unique' => 'Email sudah terdaftar.',
         ];
     }
 }

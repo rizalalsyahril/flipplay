@@ -2,14 +2,23 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
-class StoreMediaRequest extends FormRequest
+class StoreMediaRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $title = $this->input('title');
+
+        if (! $this->filled('slug') && is_string($title) && trim($title) !== '') {
+            $this->merge(['slug' => Str::slug($title)]);
+        }
     }
 
     /**
@@ -30,6 +39,17 @@ class StoreMediaRequest extends FormRequest
             'score' => ['nullable', 'numeric', 'min:0', 'max:10'],
             'genres' => ['nullable', 'array'],
             'genres.*' => ['string', 'max:50'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'anilist_id.unique' => 'ID AniList sudah digunakan.',
+            'slug.unique' => 'Slug media sudah digunakan.',
         ];
     }
 }

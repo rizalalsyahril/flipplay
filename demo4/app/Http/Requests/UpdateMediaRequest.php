@@ -3,10 +3,10 @@
 namespace App\Http\Requests;
 
 use App\Models\Media;
-use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
 
-class UpdateMediaRequest extends FormRequest
+class UpdateMediaRequest extends ApiFormRequest
 {
     public function authorize(): bool
     {
@@ -34,6 +34,38 @@ class UpdateMediaRequest extends FormRequest
             'score' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:10'],
             'genres' => ['sometimes', 'nullable', 'array'],
             'genres.*' => ['string', 'max:50'],
+        ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if (! $this->hasAny([
+                'anilist_id',
+                'title',
+                'slug',
+                'type',
+                'cover_url',
+                'trailer_url',
+                'synopsis',
+                'episodes',
+                'year',
+                'score',
+                'genres',
+            ])) {
+                $validator->errors()->add('request', 'Kirim minimal satu field untuk diperbarui.');
+            }
+        });
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'anilist_id.unique' => 'ID AniList sudah digunakan.',
+            'slug.unique' => 'Slug media sudah digunakan.',
         ];
     }
 }

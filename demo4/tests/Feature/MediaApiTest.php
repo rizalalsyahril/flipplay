@@ -297,4 +297,66 @@ class MediaApiTest extends TestCase
             'media_id' => $media->id,
         ]);
     }
+
+    public function test_empty_media_and_user_updates_return_json_422(): void
+    {
+        $media = Media::factory()->create();
+        $user = User::factory()->create();
+
+        $this->patchJson("/api/media/{$media->id}", [])
+            ->assertUnprocessable()
+            ->assertJsonStructure(['message', 'errors' => ['request']]);
+
+        $this->patchJson("/api/users/{$user->id}", [])
+            ->assertUnprocessable()
+            ->assertJsonStructure(['message', 'errors' => ['request']]);
+    }
+
+    public function test_duplicate_media_slug_and_anilist_id_return_json_422(): void
+    {
+        $this->postJson('/api/media', [
+            'title' => 'Duplicate Title',
+            'type' => 'anime',
+        ])->assertCreated();
+
+        $this->postJson('/api/media', [
+            'title' => 'Duplicate Title',
+            'type' => 'manga',
+        ])->assertUnprocessable()
+            ->assertJsonStructure(['message', 'errors' => ['slug']]);
+
+        $this->postJson('/api/media', [
+            'title' => 'First AniList Entry',
+            'type' => 'anime',
+            'anilist_id' => 12345,
+        ])->assertCreated();
+
+        $this->postJson('/api/media', [
+            'title' => 'Second AniList Entry',
+            'type' => 'anime',
+            'anilist_id' => 12345,
+        ])->assertUnprocessable()
+            ->assertJsonStructure(['message', 'errors' => ['anilist_id']]);
+    }
+
+    public function test_duplicate_user_email_returns_json_422_for_create_and_update(): void
+    {
+        $existingUser = User::factory()->create(['email' => 'taken@example.com']);
+        $userToUpdate = User::factory()->create(['email' => 'available@example.com']);
+
+        $this->postJson('/api/users', [
+            'name' => 'New User',
+            'email' => 'taken@example.com',
+        ])->assertUnprocessable()
+            ->assertJsonStructure(['message', 'errors' => ['email']]);
+
+        $this->patchJson("/api/users/{$userToUpdate->id}", [
+            'email' => $existingUser->email,
+        ])->assertUnprocessable()
+            ->assertJsonStructure(['message', 'errors' => ['email']]);
+
+        $this->patchJson("/api/users/{$userToUpdate->id}", [
+            'email' => $userToUpdate->email,
+        ])->assertOk();
+    }
 }

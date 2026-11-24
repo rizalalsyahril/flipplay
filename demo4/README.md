@@ -35,7 +35,7 @@ Server berjalan di `http://127.0.0.1:8000`. Seeder menambahkan tiga media dan sa
 | `POST` | `/api/users/{userId}/collection/{mediaId}` | Tambah media ke koleksi pengguna |
 | `DELETE` | `/api/users/{userId}/collection/{mediaId}` | Hapus media dari koleksi pengguna |
 
-Tipe yang diterima: `anime`, `drama`, `manga`, dan `novel`. Respons media menggunakan `MediaResource`; validasi create/update menggunakan Form Request dan error validasi dikirim sebagai JSON `422`.
+Tipe yang diterima: `anime`, `drama`, `manga`, dan `novel`. Respons media menggunakan `MediaResource`; validasi create/update menggunakan Form Request dan error validasi dikirim sebagai JSON `422` dengan `message` dan `errors`. Update kosong ditolak; `slug`, ID AniList, dan email yang duplikat juga menghasilkan `422`. Slug media otomatis dibuat dari judul jika tidak dikirim.
 
 Endpoint `POST`, `PATCH`, dan `DELETE /api/users` tidak memerlukan token untuk memudahkan demo lokal. Lindungi endpoint ini sebelum aplikasi dipublikasikan. Untuk membuat akun yang dapat langsung login dan memperoleh token, gunakan `POST /api/auth/register` dengan `name`, `email`, `password`, dan `password_confirmation`. Pada `POST /api/users`, jika `password` tidak diberikan, sistem membuat password acak.
 
